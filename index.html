@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日想你小程序</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #fef6f8;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .header {
+            background-color: #ff6b8b;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .counters {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .counter-card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            min-width: 180px;
+            margin: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .counter-card:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(-5px);
+        }
+        
+        .counter-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .counter-title {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .counter-count {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #ff6b8b;
+        }
+        
+        .kiss-card .counter-count {
+            color: #ff9e6d;
+        }
+        
+        .hug-card .counter-count {
+            color: #6dafff;
+        }
+        
+        .sleep-card .counter-count {
+            color: #9d6dff;
+        }
+        
+        .increment-btn {
+            background-color: #ff6b8b;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .increment-btn:hover {
+            background-color: #ff5277;
+        }
+        
+        .kiss-card .increment-btn {
+            background-color: #ff9e6d;
+        }
+        
+        .hug-card .increment-btn {
+            background-color: #6dafff;
+        }
+        
+        .sleep-card .increment-btn {
+            background-color: #9d6dff;
+        }
+        
+        .total-section {
+            background-color: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .calendar {
+            background-color: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .calendar-day {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .day-number {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .day-count {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff6b8b;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .counters {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .calendar-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💕 每日想你 💕</h1>
+            <p class="description">记录每一天想念的次数，让爱可视化</p>
+        </div>
+        
+        <div class="counters">
+            <div class="counter-card kiss-card" onclick="increment('kiss')">
+                <div class="counter-icon">💋</div>
+                <div class="counter-title">想和你亲亲</div>
+                <div class="counter-count" id="kiss-count">0</div>
+                <button class="increment-btn" onclick="increment('kiss')">亲亲 +1</button>
+            </div>
+            
+            <div class="counter-card hug-card" onclick="increment('hug')">
+                <div class="counter-icon">🤗</div>
+                <div class="counter-title">想和你抱抱</div>
+                <div class="counter-count" id="hug-count">0</div>
+                <button class="increment-btn" onclick="increment('hug')">抱抱 +1</button>
+            </div>
+            
+            <div class="counter-card sleep-card" onclick="increment('sleep')">
+                <div class="counter-icon">💤</div>
+                <div class="counter-title">想和你睡觉</div>
+                <div class="counter-count" id="sleep-count">0</div>
+                <button class="increment-btn" onclick="increment('sleep')">睡觉 +1</button>
+            </div>
+        </div>
+        
+        <div class="total-section">
+            <h2>📊 今日统计</h2>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                <div style="background-color: #f8f9fa; padding: 16px; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #666;">💋 亲亲:</span>
+                        <span style="font-weight: bold; color: #ff9e6d;">0</span>
+                    </div>
+                </div>
+                <div style="background-color: #f8f9fa; padding: 16px; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #666;">🤗 抱抱:</span>
+                        <span style="font-weight: bold; color: #6dafff;">0</span>
+                    </div>
+                </div>
+                <div style="background-color: #f8f9fa; padding: 16px; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #666;">💤 睡觉:</span>
+                        <span style="font-weight: bold; color: #9d6dff;">0</span>
+                    </div>
+                </div>
+                <div style="background-color: #ff6b8b; padding: 16px; border-radius: 8px; color: white;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>总计:</span>
+                        <span style="font-weight: bold;">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="calendar">
+            <h2>📅 想念日历</h2>
+            <div class="calendar-grid">
+                <!-- 日历格子 - 这里显示当前月的日期 -->
+                <div class="calendar-day">
+                    <div class="day-number">1</div>
+                    <div class="day-count">3</div>
+                </div>
+                <div class="calendar-day">
+                    <div class="day-number">2</div>
+                    <div class="day-count">5</div>
+                </div>
+                <div class="calendar-day">
+                    <div class="day-number">3</div>
+                    <div class="day-count">2</div>
+                </div>
+                <!-- 更多日期格子 -->
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>❤️ 爱在每一个数字里 ❤️</p>
+            <p>数据保存在浏览器本地，无需服务器</p>
+        </div>
+    </div>
+    
+    <script>
+        // 从 localStorage 读取数据
+        function loadCounts() {
+            const today = new Date().toISOString().split('T')[0];
+            const data = JSON.parse(localStorage.getItem(today) || '{"kiss":0,"hug":0,"sleep":0}');
+            
+            document.getElementById('kiss-count').textContent = data.kiss;
+            document.getElementById('hug-count').textContent = data.hug;
+            document.getElementById('sleep-count').textContent = data.sleep;
+            
+            // 更新统计
+            document.querySelector('.total-section .kiss-card .counter-count').textContent = data.kiss;
+            document.querySelector('.total-section .hug-card .counter-count').textContent = data.hug;
+            document.querySelector('.total-section .sleep-card .counter-count').textContent = data.sleep;
+            
+            const total = data.kiss + data.hug + data.sleep;
+            document.querySelector('.total-section .total-card .counter-count').textContent = total;
+        }
+        
+        // 增加计数
+        function increment(type) {
+            const today = new Date().toISOString().split('T')[0];
+            let data = JSON.parse(localStorage.getItem(today) || '{"kiss":0,"hug":0,"sleep":0}');
+            
+            data[type] += 1;
+            localStorage.setItem(today, JSON.stringify(data));
+            
+            loadCounts();
+            
+            // 更新历史数据
+            updateCalendar();
+        }
+        
+        // 更新日历
+        function updateCalendar() {
+            // 这里可以添加日历更新逻辑
+            console.log('数据已更新');
+        }
+        
+        // 初始化
+        loadCounts();
+        updateCalendar();
+        
+        // 保存整个月的数据
+        function saveMonthData(date, data) {
+            localStorage.setItem('month-' + date, JSON.stringify(data));
+        }
+        
+        // 获取月数据
+        function getMonthData(date) {
+            return JSON.parse(localStorage.getItem('month-' + date) || '{}');
+        }
+    </script>
+</body>
+</html>
