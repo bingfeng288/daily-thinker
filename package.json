@@ -1,0 +1,12 @@
+{
+  "name": "daily-thinker",
+  "version": "1.0.0",
+  "description": "每日想你小程序",
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "server": "cd backend && npm run dev",
+    "install-frontend": "cd frontend && npm install",
+    "install-backend": "cd backend && npm install"
+  }
+}

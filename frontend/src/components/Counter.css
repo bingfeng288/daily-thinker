@@ -1,0 +1,63 @@
+/* Counter.css */
+.counter-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  margin: 16px;
+  min-width: 200px;
+  transition: all 0.3s ease;
+}
+
+.counter-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+}
+
+.counter-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: #ff6b8b;
+}
+
+.counter-card h3 {
+  font-size: 20px;
+  margin-bottom: 12px;
+  color: #333;
+}
+
+.count-display {
+  font-size: 36px;
+  font-weight: bold;
+  color: #ff6b8b;
+  margin-bottom: 20px;
+}
+
+.increment-btn {
+  background-color: #ff6b8b;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.increment-btn:hover {
+  background-color: #ff5277;
+}
+
+/* 不同计数器的颜色差异 */
+.kiss-card .counter-icon { color: #ff9e6d; }
+.kiss-card .increment-btn { background-color: #ff9e6d; }
+.kiss-card .count-display { color: #ff9e6d; }
+
+.hug-card .counter-icon { color: #6dafff; }
+.hug-card .increment-btn { background-color: #6dafff; }
+.hug-card .count-display { color: #6dafff; }
+
+.sleep-card .counter-icon { color: #9d6dff; }
+.sleep-card .increment-btn { background-color: #9d6dff; }
+.sleep-card .count-display { color: #9d6dff; }

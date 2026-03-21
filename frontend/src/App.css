@@ -1,0 +1,100 @@
+/* App.css */
+.App {
+  min-height: 100vh;
+  background-color: #fef6f8;
+  font-family: 'Arial', sans-serif;
+}
+
+.App-header {
+  background-color: #ff6b8b;
+  padding: 32px;
+  text-align: center;
+  color: white;
+}
+
+.App-header h1 {
+  font-size: 36px;
+  margin-bottom: 16px;
+}
+
+.description {
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+.App-main {
+  padding: 32px;
+}
+
+.counters-container {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.total-container {
+  background-color: white;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 32px auto;
+  max-width: 600px;
+}
+
+.total-container h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center;
+}
+
+.today-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.summary-item span {
+  font-size: 18px;
+}
+
+.summary-item span:first-child {
+  color: #666;
+}
+
+.summary-item span:last-child {
+  font-weight: bold;
+  color: #ff6b8b;
+}
+
+.summary-item.total {
+  grid-column: span 2;
+  background-color: #ff6b8b;
+  color: white;
+}
+
+.summary-item.total span {
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .counters-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .today-summary {
+    grid-template-columns: 1fr;
+  }
+}

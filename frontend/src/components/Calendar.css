@@ -1,0 +1,76 @@
+/* Calendar.css */
+.calendar-container {
+  margin: 32px auto;
+  max-width: 800px;
+  padding: 24px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-container h2 {
+  font-size: 24px;
+  margin-bottom: 24px;
+  color: #333;
+  text-align: center;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+}
+
+.calendar-day {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.day-number {
+  font-size: 14px;
+  color: #666;
+}
+
+.day-count {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ff6b8b;
+}
+
+.calendar-summary {
+  margin-top: 32px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+}
+
+.calendar-summary h3 {
+  font-size: 20px;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.summary-item span {
+  font-size: 16px;
+  color: #555;
+}
+
+.summary-item span:last-child {
+  font-weight: bold;
+  color: #ff6b8b;
+}
