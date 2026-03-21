@@ -33,7 +33,7 @@
         }
         
         .container {
-            max-width: 800px;
+            max-width: เลย์divx;
             margin: 0 auto;
         }
         
@@ -190,21 +190,21 @@
         </div>
         
         <div class="counters">
-            <div class="counter-card kiss-card" onclick="increment('kiss')">
+            <div class="counter-card kiss-card">
                 <div class="counter-icon">💋</div>
                 <div class="counter-title">想和你亲亲</div>
                 <div class="counter-count" id="kiss-count">0</div>
                 <button class="increment-btn" onclick="increment('kiss')">亲亲 +1</button>
             </div>
             
-            <div class="counter-card hug-card" onclick="increment('hug')">
+            <div class="counter-card hug-card">
                 <div class="counter-icon">🤗</div>
                 <div class="counter-title">想和你抱抱</div>
                 <div class="counter-count" id="hug-count">0</div>
                 <button class="increment-btn" onclick="increment('hug')">抱抱 +1</button>
             </div>
             
-            <div class="counter-card sleep-card" onclick="increment('sleep')">
+            <div class="counter-card sleep-card">
                 <div class="counter-icon">💤</div>
                 <div class="counter-title">想和你睡觉</div>
                 <div class="counter-count" id="sleep-count">0</div>
@@ -218,25 +218,25 @@
                 <div style="background-color: #f8f9fa; padding: 16px; border-radius: 8px;">
                     <div style="display: flex; justify-content: space-between;">
                         <span style="color: #666;">💋 亲亲:</span>
-                        <span style="font-weight: bold; color: #ff9e6d;">0</span>
+                        <span style="font-weight: bold; color: #ff9e6d;" id="today-kiss">0</span>
                     </div>
                 </div>
                 <div style="background-color: #f8f9fa; padding: 16px; border-radius: 8px;">
                     <div style="display: flex; justify-content: space-between;">
                         <span style="color: #666;">🤗 抱抱:</span>
-                        <span style="font-weight: bold; color: #6dafff;">0</span>
+                        <span style="font-weight: bold; color: #6dafff;" id="today-hug">0</span>
                     </div>
                 </div>
                 <div style="background-color: #f8f9fa; padding: 16px; border-radius: 8px;">
                     <div style="display: flex; justify-content: space-between;">
                         <span style="color: #666;">💤 睡觉:</span>
-                        <span style="font-weight: bold; color: #9d6dff;">0</span>
+                        <span style="font-weight: bold; color: #9d6dff;" id="today-sleep">0</span>
                     </div>
                 </div>
                 <div style="background-color: #ff6b8b; padding: 16px; border-radius: 8px; color: white;">
                     <div style="display: flex; justify-content: space-between;">
                         <span>总计:</span>
-                        <span style="font-weight: bold;">0</span>
+                        <span style="font-weight: bold;" id="today-total">0</span>
                     </div>
                 </div>
             </div>
@@ -244,82 +244,125 @@
         
         <div class="calendar">
             <h2>📅 想念日历</h2>
-            <div class="calendar-grid">
-                <!-- 日历格子 - 这里显示当前月的日期 -->
-                <div class="calendar-day">
-                    <div class="day-number">1</div>
-                    <div class="day-count">3</div>
-                </div>
-                <div class="calendar-day">
-                    <div class="day-number">2</div>
-                    <div class="day-count">5</div>
-                </div>
-                <div class="calendar-day">
-                    <div class="day-number">3</div>
-                    <div class="day-count">2</div>
-                </div>
-                <!-- 更多日期格子 -->
+            <div id="calendar-grid" class="calendar-grid">
+                <!-- 日历格子会自动生成 -->
             </div>
         </div>
         
         <div class="footer">
             <p>❤️ 爱在每一个数字里 ❤️</p>
             <p>数据保存在浏览器本地，无需服务器</p>
+            <p>键盘快捷键：1 = 亲亲，2 = 抱抱，3 = 睡觉</p>
         </div>
     </div>
     
     <script>
+        // 生成日历格子
+        function generateCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            grid.innerHTML = '';
+            
+            // 获取这个月的数据
+            const monthKey = `month-${year}-${month}`;
+            const monthData = JSON.parse(localStorage.getItem(monthKey) || '{}');
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = `${year}-${month + 1}-${day}`;
+                const dayData = monthData[date] || {kiss:0, hug:0, sleep:0};
+                const total = dayData.kiss + dayData.hug + dayData.sleep;
+                
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'calendar-day';
+                dayDiv.innerHTML = `
+                    <div class="day-number">${day}</div>
+                    <div class="day-count">${total}</div>
+                `;
+                grid.appendChild(dayDiv);
+            }
+        }
+        
         // 从 localStorage 读取数据
         function loadCounts() {
             const today = new Date().toISOString().split('T')[0];
             const data = JSON.parse(localStorage.getItem(today) || '{"kiss":0,"hug":0,"sleep":0}');
             
+            // 更新计数器
             document.getElementById('kiss-count').textContent = data.kiss;
             document.getElementById('hug-count').textContent = data.hug;
             document.getElementById('sleep-count').textContent = data.sleep;
             
-            // 更新统计
-            document.querySelector('.total-section .kiss-card .counter-count').textContent = data.kiss;
-            document.querySelector('.total-section .hug-card .counter-count').textContent = data.hug;
-            document.querySelector('.total-section .sleep-card .counter-count').textContent = data.sleep;
+            // 更新今日统计
+            document.getElementById('today-kiss').textContent = data.kiss;
+            document.getElementById('today-hug').textContent = data.hug;
+            document.getElementById('today-sleep').textContent = data.sleep;
             
             const total = data.kiss + data.hug + data.sleep;
-            document.querySelector('.total-section .total-card .counter-count').textContent = total;
+            document.getElementById('today-total').textContent = total;
         }
         
         // 增加计数
         function increment(type) {
             const today = new Date().toISOString().split('T')[0];
-            let data = JSON.parse(localStorage.getItem(today) || '{"kiss":0,"hug":0,"sleep":0}');
+            const year = new Date().getFullYear();
+            const month = new Date().getMonth();
             
-            data[type] += 1;
-            localStorage.setItem(today, JSON.stringify(data));
+            // 更新今日数据
+            let todayData = JSON.parse(localStorage.getItem(today) || '{"kiss":0,"hug":0,"sleep":0}');
+            todayData[type] += 1;
+            localStorage.setItem(today, JSON.stringify(todayData));
             
+            // 更新月数据
+            const monthKey = `month-${year}-${month}`;
+            let monthData = JSON.parse(localStorage.getItem(monthKey) || '{}');
+            if (!monthData[today]) {
+                monthData[today] = {kiss:0, hug:0, sleep:0};
+            }
+            monthData[today][type] += 1;
+            localStorage.setItem(monthKey, JSON.stringify(monthData));
+            
+            // 刷新显示
             loadCounts();
+            generateCalendar();
             
-            // 更新历史数据
-            updateCalendar();
+            // 添加庆祝效果
+            showCelebration(type);
         }
         
-        // 更新日历
-        function updateCalendar() {
-            // 这里可以添加日历更新逻辑
-            console.log('数据已更新');
+        // 庆祝效果
+        function showCelebration(type) {
+            const countElement = document.getElementById(`${type}-count`);
+            countElement.style.color = '#ff0000';
+            countElement.style.fontSize = '48px';
+            
+            setTimeout(() => {
+                countElement.style.color = '';
+                countElement.style.fontSize = '36px';
+            }, 300);
+            
+            // 播放庆祝声音（可选）
+            const audio = document.createElement('audio');
+            audio.src = '#';
+            audio.play();
         }
         
         // 初始化
         loadCounts();
-        updateCalendar();
+        generateCalendar();
         
-        // 保存整个月的数据
-        function saveMonthData(date, data) {
-            localStorage.setItem('month-' + date, JSON.stringify(data));
-        }
+        // 添加键盘快捷键支持
+        document.addEventListener('keydown', function(event) {
+            if (event.key === '1' || event.key === '1') increment('kiss');
+            if (event.key === '2' || event.key === '2') increment('hug');
+            if (event.key === '3' || event.key === '3') increment('sleep');
+        });
         
-        // 获取月数据
-        function getMonthData(date) {
-            return JSON.parse(localStorage.getItem('month-' + date) || '{}');
-        }
+        // 显示快捷键提示
+        console.log('快捷键：1 = 亲亲，2 = 抱抱，3 = 睡觉');
     </script>
 </body>
 </html>
