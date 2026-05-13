@@ -239,11 +239,59 @@
             animation: pulse 0.4s ease;
         }
 
+        .history {
+            background-color: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s;
+        }
+
+        .history-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-date {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .history-detail {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+        }
+
+        .history-detail span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
         .actions {
             display: flex;
             gap: 10px;
             justify-content: center;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         .action-btn {
@@ -259,6 +307,64 @@
 
         .action-btn:hover {
             background-color: #5a6268;
+        }
+
+        .action-btn.danger {
+            background-color: #dc3545;
+        }
+
+        .action-btn.danger:hover {
+            background-color: #c82333;
+        }
+
+        .action-btn.success {
+            background-color: #28a745;
+        }
+
+        .action-btn.success:hover {
+            background-color: #218838;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background-color: white;
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal h3 {
+            margin-top: 0;
+            color: #dc3545;
+        }
+
+        .modal p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
         }
 
         @media (max-width: 768px) {
@@ -358,18 +464,38 @@
             </div>
         </div>
 
+        <div class="history">
+            <h2>📜 历史记录</h2>
+            <div id="history-list" class="history-list">
+                <!-- 历史记录会自动生成 -->
+            </div>
+        </div>
+
         <div class="actions">
-            <button class="action-btn" onclick="exportData()">📥 导出数据</button>
+            <button class="action-btn success" onclick="exportData()">📥 导出数据</button>
             <label class="action-btn" style="cursor: pointer;">
                 📤 导入数据
                 <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
             </label>
+            <button class="action-btn" onclick="copyToClipboard()">📋 复制到剪贴板</button>
+            <button class="action-btn danger" onclick="showClearModal()">🗑️ 清空数据</button>
+        </div>
+
+        <div class="modal-overlay" id="clear-modal">
+            <div class="modal">
+                <h3>⚠️ 确认清空</h3>
+                <p>此操作将删除所有历史数据，且无法恢复。<br>建议先导出备份。</p>
+                <div class="modal-actions">
+                    <button class="action-btn" onclick="closeClearModal()">取消</button>
+                    <button class="action-btn danger" onclick="clearAllData()">确认清空</button>
+                </div>
+            </div>
         </div>
         
         <div class="footer">
             <p>❤️ 爱在每一个数字里 ❤️</p>
             <p>数据保存在浏览器本地，无需服务器</p>
-            <p>键盘快捷键：1 = 亲亲，2 = 抱抱，3 = 睡觉 | 支持数据导出/导入</p>
+            <p>键盘快捷键：1 = 亲亲，2 = 抱抱，3 = 睡觉 | 支持数据导出/导入/清空</p>
         </div>
     </div>
     
@@ -481,7 +607,7 @@
             localStorage.setItem(today, JSON.stringify(todayData));
 
             // 更新月数据
-            const monthKey = `month-${year}-${month}`;
+            const monthKey = `month-${currentYear}-${currentMonth}`;
             let monthData = safeParse(localStorage.getItem(monthKey), {});
             if (!monthData[today]) {
                 monthData[today] = {kiss: 0, hug: 0, sleep: 0};
@@ -492,6 +618,7 @@
             // 刷新显示
             loadCounts();
             generateCalendar();
+            loadHistory();
 
             // 添加庆祝效果
             showCelebration(type);
@@ -533,6 +660,7 @@
                     });
                     loadCounts();
                     generateCalendar();
+                    loadHistory();
                     alert('数据导入成功！');
                 } catch {
                     alert('导入失败：文件格式不正确');
@@ -541,9 +669,96 @@
             reader.readAsText(file);
         }
 
+        // 复制到剪贴板
+        function copyToClipboard() {
+            const data = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                data[key] = safeParse(localStorage.getItem(key), null);
+            }
+            const text = JSON.stringify(data, null, 2);
+            navigator.clipboard.writeText(text).then(() => {
+                alert('数据已复制到剪贴板！');
+            }).catch(() => {
+                // 降级方案
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('数据已复制到剪贴板！');
+            });
+        }
+
+        // 显示清空确认弹窗
+        function showClearModal() {
+            document.getElementById('clear-modal').classList.add('active');
+        }
+
+        // 关闭清空确认弹窗
+        function closeClearModal() {
+            document.getElementById('clear-modal').classList.remove('active');
+        }
+
+        // 清空所有数据
+        function clearAllData() {
+            localStorage.clear();
+            closeClearModal();
+            loadCounts();
+            generateCalendar();
+            loadHistory();
+            alert('所有数据已清空');
+        }
+
+        // 加载历史记录
+        function loadHistory() {
+            const historyList = document.getElementById('history-list');
+            const history = [];
+
+            // 收集所有日期数据
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.match(/^\d{4}-\d{1,2}-\d{1,2}$/)) {
+                    const data = safeParse(localStorage.getItem(key), null);
+                    if (data) {
+                        history.push({
+                            date: key,
+                            kiss: data.kiss || 0,
+                            hug: data.hug || 0,
+                            sleep: data.sleep || 0,
+                            total: (data.kiss || 0) + (data.hug || 0) + (data.sleep || 0)
+                        });
+                    }
+                }
+            }
+
+            // 按日期倒序排列
+            history.sort((a, b) => b.date.localeCompare(a.date));
+
+            // 渲染历史记录
+            if (history.length === 0) {
+                historyList.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">暂无历史记录</div>';
+                return;
+            }
+
+            historyList.innerHTML = history.slice(0, 30).map(item => `
+                <div class="history-item">
+                    <span class="history-date">${item.date}</span>
+                    <div class="history-detail">
+                        <span style="color: #ff9e6d;">💋 ${item.kiss}</span>
+                        <span style="color: #6dafff;">🤗 ${item.hug}</span>
+                        <span style="color: #9d6dff;">💤 ${item.sleep}</span>
+                        <span style="color: #ff6b8b; font-weight: bold;">= ${item.total}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
         // 初始化
         loadCounts();
         generateCalendar();
+        loadHistory();
 
         // 添加键盘快捷键支持
         document.addEventListener('keydown', function(event) {
