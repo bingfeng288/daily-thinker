@@ -33,7 +33,7 @@
         }
         
         .container {
-            max-width: เลย์divx;
+            max-width: 800px;
             margin: 0 auto;
         }
         
@@ -170,14 +170,50 @@
             font-size: 14px;
         }
         
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); color: #ff0000; }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 0.4s ease;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .action-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .action-btn:hover {
+            background-color: #5a6268;
+        }
+
         @media (max-width: 768px) {
             .counters {
                 flex-direction: column;
                 align-items: center;
             }
-            
+
             .calendar-grid {
                 grid-template-columns: repeat(5, 1fr);
+            }
+
+            h1 {
+                font-size: 28px;
             }
         }
     </style>
@@ -248,119 +284,165 @@
                 <!-- 日历格子会自动生成 -->
             </div>
         </div>
+
+        <div class="actions">
+            <button class="action-btn" onclick="exportData()">📥 导出数据</button>
+            <label class="action-btn" style="cursor: pointer;">
+                📤 导入数据
+                <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
+            </label>
+        </div>
         
         <div class="footer">
             <p>❤️ 爱在每一个数字里 ❤️</p>
             <p>数据保存在浏览器本地，无需服务器</p>
-            <p>键盘快捷键：1 = 亲亲，2 = 抱抱，3 = 睡觉</p>
+            <p>键盘快捷键：1 = 亲亲，2 = 抱抱，3 = 睡觉 | 支持数据导出/导入</p>
         </div>
     </div>
     
     <script>
+        // 当前日期缓存
+        const now = new Date();
+        const today = now.toISOString().split('T')[0];
+        const year = now.getFullYear();
+        const month = now.getMonth();
+
+        // 安全的 JSON 解析
+        function safeParse(json, fallback) {
+            try {
+                return JSON.parse(json) || fallback;
+            } catch {
+                return fallback;
+            }
+        }
+
         // 生成日历格子
         function generateCalendar() {
             const grid = document.getElementById('calendar-grid');
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = today.getMonth();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
+
             grid.innerHTML = '';
-            
+
             // 获取这个月的数据
             const monthKey = `month-${year}-${month}`;
-            const monthData = JSON.parse(localStorage.getItem(monthKey) || '{}');
-            
+            const monthData = safeParse(localStorage.getItem(monthKey), {});
+
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = `${year}-${month + 1}-${day}`;
-                const dayData = monthData[date] || {kiss:0, hug:0, sleep:0};
+                const dayData = monthData[date] || {kiss: 0, hug: 0, sleep: 0};
                 const total = dayData.kiss + dayData.hug + dayData.sleep;
-                
+
                 const dayDiv = document.createElement('div');
                 dayDiv.className = 'calendar-day';
+                if (date === today) dayDiv.style.border = '2px solid #ff6b8b';
                 dayDiv.innerHTML = `
                     <div class="day-number">${day}</div>
-                    <div class="day-count">${total}</div>
+                    <div class="day-count">${total || ''}</div>
                 `;
                 grid.appendChild(dayDiv);
             }
         }
-        
+
         // 从 localStorage 读取数据
         function loadCounts() {
-            const today = new Date().toISOString().split('T')[0];
-            const data = JSON.parse(localStorage.getItem(today) || '{"kiss":0,"hug":0,"sleep":0}');
-            
+            const data = safeParse(localStorage.getItem(today), {kiss: 0, hug: 0, sleep: 0});
+
             // 更新计数器
             document.getElementById('kiss-count').textContent = data.kiss;
             document.getElementById('hug-count').textContent = data.hug;
             document.getElementById('sleep-count').textContent = data.sleep;
-            
+
             // 更新今日统计
             document.getElementById('today-kiss').textContent = data.kiss;
             document.getElementById('today-hug').textContent = data.hug;
             document.getElementById('today-sleep').textContent = data.sleep;
-            
+
             const total = data.kiss + data.hug + data.sleep;
             document.getElementById('today-total').textContent = total;
         }
-        
+
         // 增加计数
         function increment(type) {
-            const today = new Date().toISOString().split('T')[0];
-            const year = new Date().getFullYear();
-            const month = new Date().getMonth();
-            
             // 更新今日数据
-            let todayData = JSON.parse(localStorage.getItem(today) || '{"kiss":0,"hug":0,"sleep":0}');
+            let todayData = safeParse(localStorage.getItem(today), {kiss: 0, hug: 0, sleep: 0});
             todayData[type] += 1;
             localStorage.setItem(today, JSON.stringify(todayData));
-            
+
             // 更新月数据
             const monthKey = `month-${year}-${month}`;
-            let monthData = JSON.parse(localStorage.getItem(monthKey) || '{}');
+            let monthData = safeParse(localStorage.getItem(monthKey), {});
             if (!monthData[today]) {
-                monthData[today] = {kiss:0, hug:0, sleep:0};
+                monthData[today] = {kiss: 0, hug: 0, sleep: 0};
             }
             monthData[today][type] += 1;
             localStorage.setItem(monthKey, JSON.stringify(monthData));
-            
+
             // 刷新显示
             loadCounts();
             generateCalendar();
-            
+
             // 添加庆祝效果
             showCelebration(type);
         }
-        
-        // 庆祝效果
+
+        // 庆祝效果（使用 CSS 动画）
         function showCelebration(type) {
             const countElement = document.getElementById(`${type}-count`);
-            countElement.style.color = '#ff0000';
-            countElement.style.fontSize = '48px';
-            
-            setTimeout(() => {
-                countElement.style.color = '';
-                countElement.style.fontSize = '36px';
-            }, 300);
-            
-            // 播放庆祝声音（可选）
-            const audio = document.createElement('audio');
-            audio.src = '#';
-            audio.play();
+            countElement.classList.add('pulse');
+            setTimeout(() => countElement.classList.remove('pulse'), 400);
         }
-        
+
+        // 导出数据
+        function exportData() {
+            const data = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                data[key] = safeParse(localStorage.getItem(key), null);
+            }
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `daily-thinker-backup-${today}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 导入数据
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    Object.keys(data).forEach(key => {
+                        localStorage.setItem(key, JSON.stringify(data[key]));
+                    });
+                    loadCounts();
+                    generateCalendar();
+                    alert('数据导入成功！');
+                } catch {
+                    alert('导入失败：文件格式不正确');
+                }
+            };
+            reader.readAsText(file);
+        }
+
         // 初始化
         loadCounts();
         generateCalendar();
-        
+
         // 添加键盘快捷键支持
         document.addEventListener('keydown', function(event) {
-            if (event.key === '1' || event.key === '1') increment('kiss');
-            if (event.key === '2' || event.key === '2') increment('hug');
-            if (event.key === '3' || event.key === '3') increment('sleep');
+            if (event.target.tagName === 'INPUT') return;
+            switch (event.key) {
+                case '1': increment('kiss'); break;
+                case '2': increment('hug'); break;
+                case '3': increment('sleep'); break;
+            }
         });
-        
+
         // 显示快捷键提示
         console.log('快捷键：1 = 亲亲，2 = 抱抱，3 = 睡觉');
     </script>
