@@ -210,6 +210,15 @@
         .calendar-day.level-4 { background-color: #ff6b8b; }
         .calendar-day.level-4 .day-number,
         .calendar-day.level-4 .day-count { color: white; }
+
+        .calendar-day.selected {
+            border: 3px solid #333;
+            transform: scale(1.1);
+        }
+
+        .calendar-day.clickable {
+            cursor: pointer;
+        }
         
         .day-number {
             font-size: 14px;
@@ -367,6 +376,60 @@
             justify-content: center;
         }
 
+        .day-detail-modal .modal {
+            max-width: 350px;
+        }
+
+        .day-detail-header {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .day-detail-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .day-stat-item {
+            background-color: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .day-stat-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .day-stat-count {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .day-stat-label {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .history-item.clickable {
+            cursor: pointer;
+        }
+
+        .history-item.highlight {
+            background-color: #fff3cd;
+            animation: highlightFade 2s ease;
+        }
+
+        @keyframes highlightFade {
+            from { background-color: #fff3cd; }
+            to { background-color: transparent; }
+        }
+
         @media (max-width: 768px) {
             .counters {
                 flex-direction: column;
@@ -491,6 +554,38 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal-overlay day-detail-modal" id="day-detail-modal">
+            <div class="modal">
+                <div class="day-detail-header" id="day-detail-date"></div>
+                <div class="day-detail-stats">
+                    <div class="day-stat-item">
+                        <div class="day-stat-icon">💋</div>
+                        <div class="day-stat-count" id="day-detail-kiss" style="color: #ff9e6d;">0</div>
+                        <div class="day-stat-label">亲亲</div>
+                    </div>
+                    <div class="day-stat-item">
+                        <div class="day-stat-icon">🤗</div>
+                        <div class="day-stat-count" id="day-detail-hug" style="color: #6dafff;">0</div>
+                        <div class="day-stat-label">抱抱</div>
+                    </div>
+                    <div class="day-stat-item">
+                        <div class="day-stat-icon">💤</div>
+                        <div class="day-stat-count" id="day-detail-sleep" style="color: #9d6dff;">0</div>
+                        <div class="day-stat-label">睡觉</div>
+                    </div>
+                    <div class="day-stat-item" style="background-color: #ff6b8b;">
+                        <div class="day-stat-icon">💕</div>
+                        <div class="day-stat-count" id="day-detail-total" style="color: white;">0</div>
+                        <div class="day-stat-label" style="color: rgba(255,255,255,0.8);">总计</div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="action-btn danger" id="day-reset-btn" onclick="resetDayData()">重置此日</button>
+                    <button class="action-btn" onclick="closeDayDetail()">关闭</button>
+                </div>
+            </div>
+        </div>
         
         <div class="footer">
             <p>❤️ 爱在每一个数字里 ❤️</p>
@@ -509,6 +604,7 @@
         // 日历视图状态
         let viewYear = currentYear;
         let viewMonth = currentMonth;
+        let selectedDate = null;
 
         // 安全的 JSON 解析
         function safeParse(json, fallback) {
@@ -572,11 +668,14 @@
 
                 const dayDiv = document.createElement('div');
                 const levelClass = getActivityLevel(total);
-                dayDiv.className = `calendar-day ${levelClass} ${date === today ? 'today' : ''}`;
+                const isSelected = date === selectedDate;
+                dayDiv.className = `calendar-day clickable ${levelClass} ${date === today ? 'today' : ''} ${isSelected ? 'selected' : ''}`;
+                dayDiv.setAttribute('data-date', date);
                 dayDiv.innerHTML = `
                     <div class="day-number">${day}</div>
                     <div class="day-count">${total || ''}</div>
                 `;
+                dayDiv.addEventListener('click', () => showDayDetail(date));
                 grid.appendChild(dayDiv);
             }
         }
@@ -705,10 +804,80 @@
         function clearAllData() {
             localStorage.clear();
             closeClearModal();
+            selectedDate = null;
             loadCounts();
             generateCalendar();
             loadHistory();
             alert('所有数据已清空');
+        }
+
+        // 显示日期详情
+        function showDayDetail(date) {
+            selectedDate = date;
+            const data = safeParse(localStorage.getItem(date), {kiss: 0, hug: 0, sleep: 0});
+            const total = data.kiss + data.hug + data.sleep;
+
+            document.getElementById('day-detail-date').textContent = date;
+            document.getElementById('day-detail-kiss').textContent = data.kiss;
+            document.getElementById('day-detail-hug').textContent = data.hug;
+            document.getElementById('day-detail-sleep').textContent = data.sleep;
+            document.getElementById('day-detail-total').textContent = total;
+
+            // 只有今天的数据可以重置
+            const resetBtn = document.getElementById('day-reset-btn');
+            resetBtn.style.display = date === today ? 'inline-block' : 'none';
+
+            document.getElementById('day-detail-modal').classList.add('active');
+            generateCalendar();
+        }
+
+        // 关闭日期详情
+        function closeDayDetail() {
+            document.getElementById('day-detail-modal').classList.remove('active');
+            selectedDate = null;
+            generateCalendar();
+        }
+
+        // 重置某天数据
+        function resetDayData() {
+            if (!selectedDate || selectedDate !== today) return;
+
+            localStorage.setItem(today, JSON.stringify({kiss: 0, hug: 0, sleep: 0}));
+
+            // 更新月数据
+            const monthKey = `month-${currentYear}-${currentMonth}`;
+            let monthData = safeParse(localStorage.getItem(monthKey), {});
+            monthData[today] = {kiss: 0, hug: 0, sleep: 0};
+            localStorage.setItem(monthKey, JSON.stringify(monthData));
+
+            closeDayDetail();
+            loadCounts();
+            generateCalendar();
+            loadHistory();
+        }
+
+        // 滚动到日历并高亮指定日期
+        function scrollToAndHighlightDate(date) {
+            // 解析日期并切换到对应月份
+            const parts = date.split('-');
+            const targetYear = parseInt(parts[0]);
+            const targetMonth = parseInt(parts[1]) - 1;
+
+            viewYear = targetYear;
+            viewMonth = targetMonth;
+            selectedDate = date;
+            generateCalendar();
+
+            // 滚动到日历
+            document.querySelector('.calendar').scrollIntoView({behavior: 'smooth', block: 'center'});
+
+            // 高亮历史记录中的对应项
+            document.querySelectorAll('.history-item').forEach(item => {
+                item.classList.remove('highlight');
+                if (item.getAttribute('data-date') === date) {
+                    item.classList.add('highlight');
+                }
+            });
         }
 
         // 加载历史记录
@@ -743,7 +912,7 @@
             }
 
             historyList.innerHTML = history.slice(0, 30).map(item => `
-                <div class="history-item">
+                <div class="history-item clickable" data-date="${item.date}" onclick="scrollToAndHighlightDate('${item.date}')">
                     <span class="history-date">${item.date}</span>
                     <div class="history-detail">
                         <span style="color: #ff9e6d;">💋 ${item.kiss}</span>
