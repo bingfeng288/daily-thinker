@@ -133,13 +133,56 @@
             margin-bottom: 30px;
         }
         
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-nav {
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .calendar-nav:hover {
+            background-color: #ff6b8b;
+            color: white;
+            border-color: #ff6b8b;
+        }
+
+        .calendar-month {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .weekday {
+            text-align: center;
+            font-size: 14px;
+            color: #999;
+            font-weight: bold;
+        }
+
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 10px;
-            margin-top: 20px;
         }
-        
+
         .calendar-day {
             background-color: #f8f9fa;
             border-radius: 8px;
@@ -150,7 +193,23 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            transition: transform 0.2s;
         }
+
+        .calendar-day:hover {
+            transform: scale(1.05);
+        }
+
+        .calendar-day.today {
+            border: 2px solid #ff6b8b;
+        }
+
+        .calendar-day.level-1 { background-color: #ffe0e6; }
+        .calendar-day.level-2 { background-color: #ffb3c1; }
+        .calendar-day.level-3 { background-color: #ff8fa3; }
+        .calendar-day.level-4 { background-color: #ff6b8b; }
+        .calendar-day.level-4 .day-number,
+        .calendar-day.level-4 .day-count { color: white; }
         
         .day-number {
             font-size: 14px;
@@ -280,6 +339,20 @@
         
         <div class="calendar">
             <h2>📅 想念日历</h2>
+            <div class="calendar-header">
+                <button class="calendar-nav" onclick="changeMonth(-1)">◀ 上月</button>
+                <span class="calendar-month" id="calendar-month"></span>
+                <button class="calendar-nav" onclick="changeMonth(1)">下月 ▶</button>
+            </div>
+            <div class="calendar-weekdays">
+                <span class="weekday">日</span>
+                <span class="weekday">一</span>
+                <span class="weekday">二</span>
+                <span class="weekday">三</span>
+                <span class="weekday">四</span>
+                <span class="weekday">五</span>
+                <span class="weekday">六</span>
+            </div>
             <div id="calendar-grid" class="calendar-grid">
                 <!-- 日历格子会自动生成 -->
             </div>
@@ -304,8 +377,12 @@
         // 当前日期缓存
         const now = new Date();
         const today = now.toISOString().split('T')[0];
-        const year = now.getFullYear();
-        const month = now.getMonth();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+
+        // 日历视图状态
+        let viewYear = currentYear;
+        let viewMonth = currentMonth;
 
         // 安全的 JSON 解析
         function safeParse(json, fallback) {
@@ -316,25 +393,60 @@
             }
         }
 
+        // 获取活跃度等级
+        function getActivityLevel(total) {
+            if (total === 0) return '';
+            if (total <= 3) return 'level-1';
+            if (total <= 6) return 'level-2';
+            if (total <= 10) return 'level-3';
+            return 'level-4';
+        }
+
+        // 切换月份
+        function changeMonth(delta) {
+            viewMonth += delta;
+            if (viewMonth < 0) {
+                viewMonth = 11;
+                viewYear--;
+            } else if (viewMonth > 11) {
+                viewMonth = 0;
+                viewYear++;
+            }
+            generateCalendar();
+        }
+
         // 生成日历格子
         function generateCalendar() {
             const grid = document.getElementById('calendar-grid');
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const monthLabel = document.getElementById('calendar-month');
+            const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+            const firstDayOfWeek = new Date(viewYear, viewMonth, 1).getDay();
+
+            // 更新月份标题
+            monthLabel.textContent = `${viewYear}年${viewMonth + 1}月`;
 
             grid.innerHTML = '';
 
+            // 填充月初空白
+            for (let i = 0; i < firstDayOfWeek; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'calendar-day';
+                emptyDiv.style.visibility = 'hidden';
+                grid.appendChild(emptyDiv);
+            }
+
             // 获取这个月的数据
-            const monthKey = `month-${year}-${month}`;
+            const monthKey = `month-${viewYear}-${viewMonth}`;
             const monthData = safeParse(localStorage.getItem(monthKey), {});
 
             for (let day = 1; day <= daysInMonth; day++) {
-                const date = `${year}-${month + 1}-${day}`;
+                const date = `${viewYear}-${viewMonth + 1}-${day}`;
                 const dayData = monthData[date] || {kiss: 0, hug: 0, sleep: 0};
                 const total = dayData.kiss + dayData.hug + dayData.sleep;
 
                 const dayDiv = document.createElement('div');
-                dayDiv.className = 'calendar-day';
-                if (date === today) dayDiv.style.border = '2px solid #ff6b8b';
+                const levelClass = getActivityLevel(total);
+                dayDiv.className = `calendar-day ${levelClass} ${date === today ? 'today' : ''}`;
                 dayDiv.innerHTML = `
                     <div class="day-number">${day}</div>
                     <div class="day-count">${total || ''}</div>
