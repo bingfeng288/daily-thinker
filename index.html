@@ -615,6 +615,11 @@
             }
         }
 
+        // 格式化日期为 YYYY-MM-DD（零填充）
+        function formatDate(year, month, day) {
+            return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        }
+
         // 获取活跃度等级
         function getActivityLevel(total) {
             if (total === 0) return '';
@@ -662,7 +667,7 @@
             const monthData = safeParse(localStorage.getItem(monthKey), {});
 
             for (let day = 1; day <= daysInMonth; day++) {
-                const date = `${viewYear}-${viewMonth + 1}-${day}`;
+                const date = formatDate(viewYear, viewMonth, day);
                 const dayData = monthData[date] || {kiss: 0, hug: 0, sleep: 0};
                 const total = dayData.kiss + dayData.hug + dayData.sleep;
 
